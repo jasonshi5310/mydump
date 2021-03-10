@@ -1,0 +1,5 @@
+CSE 508 HW2 Report
+
+Name: Minqi Shi
+ID: 111548035
+Environment: Ubuntu 20.04.2 LTS
