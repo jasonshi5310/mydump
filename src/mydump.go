@@ -13,7 +13,6 @@
 
 package main
 
-// packet_number := 0
 
 import (
 	"fmt"
@@ -23,6 +22,7 @@ import (
 	"os"
 	"strings"
 )
+
 
 func tcp_flags(tcp *layers.TCP) string{
 	s := ""
@@ -76,18 +76,16 @@ func ethernet_type_convert(et layers.EthernetType) string{
 	}
 }
 
+// The following function is inspired from the following link
 // https://www.itread01.com/content/1546724723.html
 func printPacketInfo(packet gopacket.Packet, dash_s string) {
 	applicationLayer := packet.ApplicationLayer()
     if dash_s != "-1"{
-        // fmt.Println("Application layer/Payload found.")
-        // fmt.Printf("%s\n", applicationLayer.Payload())
 		if applicationLayer == nil{
 			return
 		}
         // Search for a string inside the payload
         if !strings.Contains(string(applicationLayer.Payload()), dash_s) {
-			// fmt.Println("AAAAAAAAAAAAAAAAAaa")
             return
         }
     }
@@ -98,14 +96,11 @@ func printPacketInfo(packet gopacket.Packet, dash_s string) {
     // Let's see if the packet is an ethernet packet
     ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
     if ethernetLayer != nil {
-        // fmt.Println("Ethernet layer detected.")
         ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
         fmt.Print(ethernetPacket.SrcMAC, " -> ")
         fmt.Print(ethernetPacket.DstMAC, " ")
         // Ethernet type is typically IPv4 but could be ARP or other
 		hex_type := ethernet_type_convert(ethernetPacket.EthernetType)
-        // fmt.Printf("type %T", ethernetPacket.EthernetType)
-		// fmt.Print(packet[12:14])
 		if hex_type == "not found"{
 			fmt.Print("type ", ethernetPacket.EthernetType)
 		}else{
@@ -114,7 +109,7 @@ func printPacketInfo(packet gopacket.Packet, dash_s string) {
     }
 	packet_length := packet.Metadata().CaptureInfo.Length
 	fmt.Println(" len", packet_length)
-
+	
     // Let's see if the packet is IP (even though the ether type told us)
     ipLayer := packet.Layer(layers.LayerTypeIPv4)
     if ipLayer != nil {
@@ -127,28 +122,11 @@ func printPacketInfo(packet gopacket.Packet, dash_s string) {
         // TOS, Length, Id, Flags, FragOffset, TTL, Protocol (TCP?),
         // Checksum, SrcIP, DstIP
 
-		    // Let's see if the packet is TCP
+		// Let's see if the packet is TCP
 		tcpLayer := packet.Layer(layers.LayerTypeTCP)
 		udplayer := packet.Layer(layers.LayerTypeUDP)
-		// var(
-		// 	isTCP := false
-		// 	isUDP := false
-		// )
 		if tcpLayer != nil {
-			// fmt.Println("TCP layer detected.")
 			tcp, _ := tcpLayer.(*layers.TCP)
-			// tcp := tcpLayer
-			// fmt.Println(reflect.TypeOf(tcp), reflect.TypeOf(tcpLayer))
-			// // fmt.Println(tcpLayer)
-			// fmt.Println("some=", some)
-
-			// TCP layer variables:
-			// SrcPort, DstPort, Seq, Ack, DataOffset, Window, Checksum, Urgent
-			// Bool flags: FIN, SYN, RST, PSH, ACK, URG, ECE, CWR, NS
-			// fmt.Printf("From port %d to %d\n", tcpLayer.SrcPort, tcpLayer.DstPort)
-			// fmt.Printf("From port %d to %d\n", tcp.SrcPort, tcp.DstPort)
-			// fmt.Println("Sequence number: ", tcp.Seq)
-			// fmt.Println()
 			fmt.Printf("%s.%s -> %s.%s", ip.SrcIP, tcp.SrcPort, ip.DstIP, tcp.DstPort)
 			fmt.Print(" ", ip.Protocol)
 			fmt.Print(tcp_flags(tcp))
@@ -163,25 +141,19 @@ func printPacketInfo(packet gopacket.Packet, dash_s string) {
 		fmt.Println()
     }
 
-    // Iterate over all layers, printing out each layer type
-    // fmt.Println("All packet layers:")
-    // for _, layer := range packet.Layers() {
-    //     fmt.Println("- ", layer.LayerType())
-    // }
-
-    // When iterating through packet.Layers() above,
-    // if it lists Payload layer then that is the same as
-    // this applicationLayer. applicationLayer contains the payload
+	// print the payload
 	if applicationLayer != nil {
-        fmt.Printf("%s\n", applicationLayer.Payload())
+		pl := gopacket.LayerDump(applicationLayer)
+		pl = pl[strings.Index(pl,"\n")+1:]
+		fmt.Print(pl)
     }
 	
     // Check for errors
     if err := packet.ErrorLayer(); err != nil {
         fmt.Println("Error decoding some part of the packet:", err)
     }
-
-	fmt.Println("----------------------------------------------")
+	fmt.Println()
+	// fmt.Println("----------------------------------------------")
 }
 
 func main() {
@@ -194,8 +166,8 @@ func main() {
 	argv := os.Args[1:]      // Argument vector
 	argv_length := len(argv) // Length of the arguments
 
-	fmt.Printf("Argument vector: %v\n", argv)
-	fmt.Printf("Vector Length: %v\n", argv_length)
+	// fmt.Printf("Argument vector: %v\n", argv)
+	// fmt.Printf("Vector Length: %v\n", argv_length)
 
 	var (
 		inter_face  string = "-1"
@@ -228,7 +200,7 @@ func main() {
 				return
 			}
 			inter_face = argv[i+1]
-			fmt.Println("Interface:", inter_face)
+			// fmt.Println("Interface:", inter_face)
 		case "-r":
 			if filepath != "-1" {
 				fmt.Println("Multiple files provided!")
@@ -239,7 +211,7 @@ func main() {
 				return
 			}
 			filepath = argv[i+1]
-			fmt.Println("File:", filepath)
+			// fmt.Println("File:", filepath)
 		case "-s":
 			if str != "-1" {
 				fmt.Println("Multiple expression defined!")
@@ -250,21 +222,15 @@ func main() {
 				return
 			}
 			str = argv[i+1]
-			fmt.Println("String:", str)
+			// fmt.Println("String:", str)
 		default:
 			fmt.Println("Unrecognized command!")
 			return
 		}
 	}
-	// if argv_length != 0 && argv_length%2 != 0 {
-	// 	expr = argv[argv_length-1]
-	// 	fmt.Println("Expr:", expr)
-	// }
-	// optind = optind - 2
-	// fmt.Println(optind)
 	if optind < argv_length {
 		expr = argv[optind:]
-		fmt.Printf("Expr: %v\n", expr)
+		// fmt.Printf("Expr: %v\n", expr)
 	}
 	if len(expr) != 0 {
 		for i := 0; i < len(expr); i++ {
@@ -273,7 +239,7 @@ func main() {
 				expr_string += " "
 			}
 		}
-		fmt.Printf("Expr String: %v\n", expr_string)
+		// fmt.Printf("Expr String: %v\n", expr_string)
 	}else {
 		expr_string = ""
 	}
