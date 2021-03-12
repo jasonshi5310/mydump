@@ -139,12 +139,12 @@ func printPacketInfo(packet gopacket.Packet, dash_s string) {
 		udplayer := packet.Layer(layers.LayerTypeUDP)
 		if tcpLayer != nil {
 			tcp, _ := tcpLayer.(*layers.TCP)
-			fmt.Printf("%s.%s -> %s.%s", ip.SrcIP, tcp.SrcPort, ip.DstIP, tcp.DstPort)
+			fmt.Printf("%s:%s -> %s:%s", ip.SrcIP, tcp.SrcPort, ip.DstIP, tcp.DstPort)
 			fmt.Print(" ", ip.Protocol)
 			fmt.Print(tcp_flags(tcp))
 		} else if udplayer != nil {
 			udp, _ := udplayer.(*layers.UDP)
-			fmt.Printf("%s.%s -> %s.%s", ip.SrcIP, udp.SrcPort, ip.DstIP, udp.DstPort)
+			fmt.Printf("%s:%s -> %s:%s", ip.SrcIP, udp.SrcPort, ip.DstIP, udp.DstPort)
 			fmt.Print(" ", ip.Protocol)
 		} else {
 			fmt.Printf("%s -> %s", ip.SrcIP, ip.DstIP)
