@@ -3,3 +3,49 @@ CSE 508 HW2 Report
 Name: Minqi Shi
 ID: 111548035
 Environment: Ubuntu 20.04.2 LTS
+
+mydump.go is under src folder.
+
+First I handle the input argument vector in the main function. I allow the 
+-i/-r/-s options to be in random order but I treat an input of multiple same 
+options as incorrect one and I also test if the argument is missing. 
+However, I assume there is no options after the BPF fileter; so if a input like 
+
+sudo go run src/mydump.go -i any tcp -s HTTP
+
+would be reported as an incorrect input since -s is not a BPF filter.
+Then I check if there is a option -i. If not, I use pcap.FindAllDevs() from:
+
+https://www.devdungeon.com/content/packet-capture-injection-and-analysis-gopacket
+
+in the "Find devices" section to get the first avaliable device. If there is no
+device avaliable, panic(err) and end the program.
+
+
+Then I use the code from the offcial website:
+
+https://pkg.go.dev/github.com/google/gopacket@v1.1.19/pcap
+
+in the "Reading PCAP Files" and "Reading Live Packets"; I kept most of the code
+but made some minor changes to satisfied the requirements of the hw.
+
+
+The packets read in or captured are then passed to printPacketInfo(packet, string) 
+to parse and print out. I used the code from:
+
+https://www.devdungeon.com/content/packet-capture-injection-and-analysis-gopacket
+
+from "Decoding Packet Layers" section. I changed a lot to make the output printed 
+out as the hw doc does. This function basically go throught all the existing
+layers of the packet passed in and print out the info. I handle the hex code 
+of ethernet type and TCP flags in a really bad fashion (a series of if statement).
+To be honest, I have never used Go before and I am a total beginner so 
+as long as it works :)
+
+I have also attached the .pcap file I used to demonstrate my example.
+I used the command:
+
+sudo go run src/mydump.go -r hw2.pcap -s www.google.com tcp
+
+Thank you for reading my report and have a good one.
+
